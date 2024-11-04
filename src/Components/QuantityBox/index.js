@@ -15,13 +15,14 @@ const QuantityBox = ({ initialQuantity, onQuantityChange }) => {
   const plus = () => {
     setInputVal(inputVal + 1);
   };
-
+       // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedOnQuantityChange = useCallback(
     _.debounce((newVal) => {
       if (onQuantityChange) {
         onQuantityChange(newVal);
       }
     }, 300),
+       // eslint-disable-next-line react-hooks/exhaustive-deps
     [onQuantityChange] // Add onQuantityChange as a dependency
   );
 
