@@ -27,7 +27,8 @@ const QuantityBox = ({ initialQuantity, onQuantityChange }) => {
 
   useEffect(() => {
     debouncedOnQuantityChange(inputVal);
-  }, [inputVal, debouncedOnQuantityChange]);
+       // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="quantityDrop d-flex align-items-center">

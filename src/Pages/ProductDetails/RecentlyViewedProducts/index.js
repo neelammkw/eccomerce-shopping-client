@@ -3,7 +3,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
-import { Pagination, Navigation } from "swiper/modules";
+import { Navigation } from "swiper/modules";
 
 import { fetchDataFromApi } from "../../../utils/api"; // Adjust the path as needed
 import ProductItem from "../../../Components/ProductItem";

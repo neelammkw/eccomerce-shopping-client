@@ -26,10 +26,11 @@ const CountryDropdown = () => {
   };
   useEffect(() => {
     setCountryList(context.countryList);
+       // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const filterList = (e) => {
     const keyword = e.target.value.toLowerCase();
-    if (keyword != -"") {
+    if (keyword !== -"") {
       const list = countryList.filter((item) => {
         return item.country.toLowerCase().includes(keyword);
       });

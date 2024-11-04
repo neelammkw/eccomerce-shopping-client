@@ -210,13 +210,13 @@ const Footer = () => {
               <div class="site-social">
                 <ul>
                   <li>
-                    <a href="https://www.facebook.com/" target="_blank">
+                    <a href="https://www.facebook.com/" target="_blank"  rel="noreferrer" >
                       <RiFacebookCircleLine />
                     </a>
                   </li>
 
                   <li>
-                    <a href="https://www.instagram.com/" target="_blank">
+                    <a href="https://www.instagram.com/" target="_blank" rel="noreferrer">
                       <FaInstagram />
                     </a>
                   </li>

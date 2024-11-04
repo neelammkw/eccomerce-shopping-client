@@ -58,7 +58,7 @@ const StyledProductDetails = styled("div")({
 const ProductModal = React.memo(({ open, onClose, product }) => {
 
 
-const [isLoading, setIsLoading] = useState(false);
+const [ setIsLoading] = useState(false);
 
   const context = useContext(MyContext);
   const { user, myList, setMyList } = context;
@@ -165,7 +165,8 @@ setIsLoading(false);
 
   useEffect(() => {
     checkIfInList();
-  }, [user, product, myList]);
+       // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Function to add a product to the cart
   const addToCart = () => {
