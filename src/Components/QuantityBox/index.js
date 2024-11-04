@@ -21,15 +21,13 @@ const QuantityBox = ({ initialQuantity, onQuantityChange }) => {
       if (onQuantityChange) {
         onQuantityChange(newVal);
       }
-    }, 300), // Debounce time in milliseconds
-       // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    }, 300),
+    [onQuantityChange] // Add onQuantityChange as a dependency
   );
 
   useEffect(() => {
     debouncedOnQuantityChange(inputVal);
-       // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [inputVal, debouncedOnQuantityChange]); // Add inputVal and debouncedOnQuantityChange as dependencies
 
   return (
     <div className="quantityDrop d-flex align-items-center">
