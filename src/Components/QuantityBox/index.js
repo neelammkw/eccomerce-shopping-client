@@ -22,7 +22,8 @@ const QuantityBox = ({ initialQuantity, onQuantityChange }) => {
         onQuantityChange(newVal);
       }
     }, 300), // Debounce time in milliseconds
-    [onQuantityChange]
+       // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
   );
 
   useEffect(() => {
