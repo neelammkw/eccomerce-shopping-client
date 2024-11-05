@@ -103,7 +103,7 @@ const Cart = () => {
       );
       setProducts(updatedCartData);
       toast.success("Item removed from cart.");
-      window.location.reload();
+      // window.location.reload();
     } catch (error) {
       console.error("Error removing item:", error);
       toast.error("Error removing item.");
@@ -119,7 +119,7 @@ const Cart = () => {
       await removeAllCartItems(`/api/cart/${user.userId}`);
       setProducts([]);
       toast.success("All items removed from cart.");
-      window.location.reload();
+      // window.location.reload();
     } catch (error) {
       console.error("Error removing all items:", error);
       toast.error("Error removing all items.");
