@@ -105,7 +105,6 @@ useEffect(() => {
 
 useEffect(() => {
   checkIfInList();
-  window.scrollTo(0, 0);
 }, [user, product, myList, checkIfInList]);
 
 
