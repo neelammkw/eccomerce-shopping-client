@@ -1,5 +1,5 @@
 [build]
-commnd = ""npm run build"
+commnd = "npm run build"
 publish = "/build"
 base = "/"
 
