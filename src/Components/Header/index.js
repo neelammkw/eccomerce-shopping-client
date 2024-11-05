@@ -36,7 +36,7 @@ const Header = () => {
         console.error("Error fetching cart data:", error);
       }
     }
-  }, [user, setCartFields]);
+  }, [user, setCartFields, setCartProductData]);
 
   useEffect(() => {
     fetchCartData();
