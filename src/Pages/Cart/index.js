@@ -22,7 +22,7 @@ const Cart = () => {
   const [products, setProducts] = useState([]);
   const [updatedQuantities, setUpdatedQuantities] = useState({});
   const [loading, setLoading] = useState(false);
-  const { user } = useContext(MyContext);
+  const { user, setCartProductData } = useContext(MyContext);
   const navigate = useNavigate();
 
   const shippingCharge = 0.0;
@@ -82,10 +82,10 @@ const Cart = () => {
       const updatedCartData = await fetchDataFromApi(
         `/api/cart/${user.userId}`
       );
-      setProducts(updatedCartData);
+      setCartProductData(updatedCartData);
       setUpdatedQuantities({});
       toast.success("Cart updated successfully!");
-      window.location.reload();
+      // window.location.reload();
     } catch (error) {
       console.error("Error updating cart:", error);
       toast.error("Failed to update cart. Please try again.");
@@ -101,9 +101,8 @@ const Cart = () => {
       const updatedCartData = await fetchDataFromApi(
         `/api/cart/${user.userId}`
       );
-      setProducts(updatedCartData);
+      setCartProductData(updatedCartData);
       toast.success("Item removed from cart.");
-      // window.location.reload();
     } catch (error) {
       console.error("Error removing item:", error);
       toast.error("Error removing item.");
@@ -117,9 +116,8 @@ const Cart = () => {
     toast.dismiss();
     try {
       await removeAllCartItems(`/api/cart/${user.userId}`);
-      setProducts([]);
+      setCartProductData([]);
       toast.success("All items removed from cart.");
-      // window.location.reload();
     } catch (error) {
       console.error("Error removing all items:", error);
       toast.error("Error removing all items.");

@@ -17,7 +17,7 @@ import { MyContext } from "../../App";
 import { fetchDataFromApi } from "../../utils/api";
 
 const Header = () => {
-  const { cartFields = [], user, setIsLogin, setUser, setCartFields, setMyList } = useContext(MyContext);
+  const { cartFields = [], user, setIsLogin, setUser, setCartFields, setMyList,setCartProductData } = useContext(MyContext);
   const [anchorEl, setAnchorEl] = useState(null);
   const [cartTotal, setCartTotal] = useState(0);
   const navigate = useNavigate();
@@ -29,6 +29,7 @@ const Header = () => {
       try {
         const cartData = await fetchDataFromApi(`/api/cart/${user.userId}`);
         setCartFields(cartData);
+        setCartProductData(cartData);
         const total = cartData.reduce((acc, item) => acc + item.price * item.quantity, 0).toFixed(2);
         setCartTotal(total);
       } catch (error) {
