@@ -85,7 +85,7 @@ const Cart = () => {
       setCartProductData(updatedCartData);
       setUpdatedQuantities({});
       toast.success("Cart updated successfully!");
-      // window.location.reload();
+      window.location.reload();
     } catch (error) {
       console.error("Error updating cart:", error);
       toast.error("Failed to update cart. Please try again.");
@@ -102,6 +102,7 @@ const Cart = () => {
         `/api/cart/${user.userId}`
       );
       setCartProductData(updatedCartData);
+      window.location.reload();
       toast.success("Item removed from cart.");
     } catch (error) {
       console.error("Error removing item:", error);
@@ -117,6 +118,7 @@ const Cart = () => {
     try {
       await removeAllCartItems(`/api/cart/${user.userId}`);
       setCartProductData([]);
+      window.location.reload();
       toast.success("All items removed from cart.");
     } catch (error) {
       console.error("Error removing all items:", error);
