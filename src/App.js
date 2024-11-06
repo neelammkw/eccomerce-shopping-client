@@ -68,6 +68,12 @@ function App() {
   };
 
   const addToCart = async (data) => {
+    if (!user) {
+    // Show a message prompting the user to log in
+    toast.error("Login to add product to cart.");
+    return;
+  }
+
     try {
       const response = await postCartData("/api/cart/add", data);
 
