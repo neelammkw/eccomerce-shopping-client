@@ -285,14 +285,7 @@ const SignUp = () => {
                       </Button>
                     )}
                   />
-                  // <Button
-                  //   className="cursor rounded-circle d-flex align-items-center justify-content-center ml-3"
-                  //   href="/"
-                  //   target="_blank"
-                  //   rel="noopener noreferrer"
-                  // >
-                  //   <img src={fb} alt="Facebook" />
-                  // </Button>
+                  
                 </div>
               </div>
             </div>

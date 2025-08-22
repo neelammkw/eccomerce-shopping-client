@@ -53,58 +53,56 @@ const SignIn = () => {
   };
 
   const signInWithGoogle = async (e) => {
-    e.preventDefault(); 
-    setGoogleLoading(true);
+  e.preventDefault(); 
+  setGoogleLoading(true);
+  
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
     
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-      
-      // Get the Google ID token from Firebase
-      const idToken = await user.getIdToken();
-      
-      // Send the Google ID token to your backend
-      const response = await postData("/api/user/authWithGoogle", {
-        token: idToken
-      });
+    // Get the Google ID token from Firebase
+    const idToken = await user.getIdToken();
+    
+    // Send the Google ID token to your backend
+    const response = await postData("/api/user/authWithGoogle", {
+      token: idToken
+    });
 
-      // Check if response is successful
-      if (response.status === 200) {
-        const { token: jwtToken, user: apiUser } = response;
+    // FIX: Check response.data instead of response.status
+    if (response.data && response.data.token) {
+      const { token: jwtToken, user: apiUser } = response.data;
 
-        localStorage.setItem("token", jwtToken);
+      localStorage.setItem("token", jwtToken);
 
-        const userData = {
-          name: apiUser.name,
-          email: apiUser.email,
-          userId: apiUser._id,
-          profilePhoto: apiUser.profilePhoto,
-        };
+      const userData = {
+        name: apiUser.name,
+        email: apiUser.email,
+        userId: apiUser._id,
+        profilePhoto: apiUser.profilePhoto,
+      };
 
-        localStorage.setItem("user", JSON.stringify(userData));
-        context.setUser(userData);
-        context.setIsLogin(true);
-        toast.success("Logged in successfully with Google!");
-        navigate("/");
-      } else {
-        toast.error(response.message || "Google sign-in failed.");
-      }
-    } catch (error) {
-      console.error("Google sign-in error:", error);
-      
-      // More specific error handling
-      if (error.response && error.response.data) {
-        toast.error(error.response.data.message || "Google authentication failed");
-      } else if (error.code === 'auth/popup-closed-by-user') {
-        toast.info("Google sign-in was cancelled");
-      } else {
-        toast.error("An error occurred during Google sign-in. Please try again.");
-      }
-    } finally {
-      setGoogleLoading(false);
+      localStorage.setItem("user", JSON.stringify(userData));
+      context.setUser(userData);
+      context.setIsLogin(true);
+      toast.success("Logged in successfully with Google!");
+      navigate("/");
+    } else {
+      toast.error(response.data?.message || "Google sign-in failed.");
     }
-  };
-
+  } catch (error) {
+    console.error("Google sign-in error:", error);
+    
+    if (error.response && error.response.data) {
+      toast.error(error.response.data.message || "Google authentication failed");
+    } else if (error.code === 'auth/popup-closed-by-user') {
+      toast.info("Google sign-in was cancelled");
+    } else {
+      toast.error("An error occurred during Google sign-in. Please try again.");
+    }
+  } finally {
+    setGoogleLoading(false);
+  }
+};
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) {
