@@ -4,19 +4,21 @@ import { Link } from "react-router-dom";
 import Logo from "../../assets/images/download.png";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
-import google from "../../assets/images/g-plus.png";
+import googleIcon from "../../assets/images/g-plus.png";
 import fb from "../../assets/images/fb.png";
 import { ToastContainer, toast } from "react-toastify";
 import { postData } from "../../utils/api";
 import { useNavigate } from 'react-router-dom'; 
-import CircularProgress from '@mui/material/CircularProgress'; // Import CircularProgress
-
+import CircularProgress from '@mui/material/CircularProgress';
+import { GoogleLogin } from '@react-oauth/google';
+import { jwtDecode } from "jwt-decode";
 import "react-toastify/dist/ReactToastify.css";
 
 const SignUp = () => {
   const context = useContext(MyContext);
   const navigate = useNavigate(); 
-  const [loading, setLoading] = useState(false); // Loading state
+  const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   useEffect(() => {
     context.setIsHeaderFooterShow(false);
@@ -55,41 +57,78 @@ const SignUp = () => {
   };
 
   // Handle form submission
-const handleSubmit = async (event) => {
-  event.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
-  if (!validate()) {
-    return;
-  }
-
-  setLoading(true); // Show loader
-
-  try {
-    const response = await postData("/api/user/sign-up", formFields);
-
-    // Check the status code and handle accordingly
-    if (response.status === 201) {
-      toast.success("User added successfully!");
-      setTimeout(() => {
-        navigate("/sign-in");
-      }, 1500);
-
-    } else if (response.status === 409) { // Assuming 409 for conflict
-      toast.error("User with this email or phone number already exists");
-    } else {
-      toast.error("An error occurred during registration");
+    if (!validate()) {
+      return;
     }
-  } catch (error) {
-    if (error.response && error.response.data) {
-      const backendErrors = error.response.data.message;
-      toast.error(backendErrors || "An error occurred during registration");
-    } else {
-      toast.error("Something went wrong. Please try again later.");
+
+    setLoading(true);
+
+    try {
+      const response = await postData("/api/user/sign-up", formFields);
+
+      if (response.status === 201) {
+        toast.success("User added successfully!");
+        setTimeout(() => {
+          navigate("/sign-in");
+        }, 1500);
+      } else if (response.status === 409) {
+        toast.error("User with this email or phone number already exists");
+      } else {
+        toast.error("An error occurred during registration");
+      }
+    } catch (error) {
+      if (error.response && error.response.data) {
+        const backendErrors = error.response.data.message;
+        toast.error(backendErrors || "An error occurred during registration");
+      } else {
+        toast.error("Something went wrong. Please try again later.");
+      }
+    } finally {
+      setLoading(false);
     }
-  } finally {
-    setLoading(false); // Hide loader
-  }
-};
+  };
+
+  // Handle Google authentication success
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setGoogleLoading(true);
+    try {
+      const decoded = jwtDecode(credentialResponse.credential);
+      
+      const response = await postData("/api/user/authWithGoogle", {
+        token: credentialResponse.credential
+      });
+
+      if (response.token) {
+        // Store the token in localStorage or context
+        localStorage.setItem('authToken', response.token);
+        context.setUser(response.user);
+        toast.success("Google authentication successful!");
+        
+        // Redirect based on user role or to homepage
+        setTimeout(() => {
+          navigate("/");
+          context.setIsHeaderFooterShow(true);
+        }, 1000);
+      }
+    } catch (error) {
+      console.error("Google auth error:", error);
+      if (error.response && error.response.data) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Google authentication failed");
+      }
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  // Handle Google authentication failure
+  const handleGoogleError = () => {
+    toast.error("Google authentication failed");
+  };
 
   return (
     <>
@@ -198,9 +237,10 @@ const handleSubmit = async (event) => {
                     <div className="col-md-6">
                       <Button
                         type="submit"
-                        className="btn btn-blue btn-lg w-100 mt-0 mt-1" disabled={loading===true ? true: false}
-                      >{loading ? <CircularProgress size={24} /> : "Sign Up"} {/* Conditionally show loader */}
-                        
+                        className="btn btn-blue btn-lg w-100 mt-0 mt-1" 
+                        disabled={loading}
+                      >
+                        {loading ? <CircularProgress size={24} /> : "Sign Up"}
                       </Button>
                     </div>
                     <div className="col-md-6">
@@ -228,22 +268,31 @@ const handleSubmit = async (event) => {
                 <h5 className="text-center">Or continue with social account</h5>
                 <br />
                 <div className="d-flex align-items-center justify-content-center socialimg">
-                  <Button
-                    className="cursor rounded-circle d-flex align-items-center justify-content-center"
-                    href="/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <img src={google} alt="Google Plus" />
-                  </Button>
-                  <Button
-                    className="cursor rounded-circle d-flex align-items-center justify-content-center ml-3"
-                    href="/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <img src={fb} alt="Facebook" />
-                  </Button>
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={handleGoogleError}
+                    render={(renderProps) => (
+                      <Button
+                        onClick={renderProps.onClick}
+                        disabled={renderProps.disabled || googleLoading}
+                        className="cursor rounded-circle d-flex align-items-center justify-content-center"
+                      >
+                        {googleLoading ? (
+                          <CircularProgress size={24} />
+                        ) : (
+                          <img src={googleIcon} alt="Google" />
+                        )}
+                      </Button>
+                    )}
+                  />
+                  // <Button
+                  //   className="cursor rounded-circle d-flex align-items-center justify-content-center ml-3"
+                  //   href="/"
+                  //   target="_blank"
+                  //   rel="noopener noreferrer"
+                  // >
+                  //   <img src={fb} alt="Facebook" />
+                  // </Button>
                 </div>
               </div>
             </div>

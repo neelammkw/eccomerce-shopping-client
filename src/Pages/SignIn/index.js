@@ -22,6 +22,7 @@ const SignIn = () => {
     password: "",
   });
   const [errors, setErrors] = useState({});
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -53,26 +54,25 @@ const SignIn = () => {
 
   const signInWithGoogle = async (e) => {
     e.preventDefault(); 
+    setGoogleLoading(true);
+    
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
+      
+      // Get the Google ID token from Firebase
+      const idToken = await user.getIdToken();
+      
+      // Send the Google ID token to your backend
+      const response = await postData("/api/user/authWithGoogle", {
+        token: idToken
+      });
 
-      const fields = {
-        name: user.displayName,
-        email: user.email,
-        profilePhoto: user.photoURL,
-        password: null, // Not required as this is a Google sign-in
-        phone: user.phoneNumber,
-      };
+      // Check if response is successful
+      if (response.status === 200) {
+        const { token: jwtToken, user: apiUser } = response;
 
-      // Send user details to your backend API
-      const response = await postData("/api/user/authWithGoogle", fields);
-
-      // Check if response.data exists
-      if (response.status === 200 && response.data) {
-        const { token, user: apiUser } = response.data; // Adjusting to access response.data
-
-        localStorage.setItem("token", token);
+        localStorage.setItem("token", jwtToken);
 
         const userData = {
           name: apiUser.name,
@@ -91,7 +91,17 @@ const SignIn = () => {
       }
     } catch (error) {
       console.error("Google sign-in error:", error);
-      toast.error("An error occurred during Google sign-in.");
+      
+      // More specific error handling
+      if (error.response && error.response.data) {
+        toast.error(error.response.data.message || "Google authentication failed");
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        toast.info("Google sign-in was cancelled");
+      } else {
+        toast.error("An error occurred during Google sign-in. Please try again.");
+      }
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -103,7 +113,7 @@ const SignIn = () => {
     try {
       const response = await postData("/api/user/login", formFields);
       if (response && response.status === 200) {
-        const { token, user } = response.data;
+        const { token, user } = response;
         const userdata = {
           name: user.name,
           email: user.email,
@@ -118,12 +128,17 @@ const SignIn = () => {
         navigate("/");
       } else {
         toast.error(
-          response.data?.message || "Login failed. Please try again."
+          response.message || "Login failed. Please try again."
         );
       }
     } catch (error) {
       console.error("Login error:", error);
-      toast.error("An error occurred during login. Please try again later.");
+      
+      if (error.response && error.response.data) {
+        toast.error(error.response.data.message || "Login failed");
+      } else {
+        toast.error("An error occurred during login. Please try again later.");
+      }
     }
   };
 
@@ -241,8 +256,15 @@ const SignIn = () => {
                   className="cursor rounded-circle d-flex align-items-center justify-content-center"
                   rel="noopener noreferrer"
                   onClick={signInWithGoogle}
+                  disabled={googleLoading}
                 >
-                  <img src={google} alt="Google Plus" />
+                  {googleLoading ? (
+                    <div className="spinner-border spinner-border-sm text-light" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                  ) : (
+                    <img src={google} alt="Google Sign In" />
+                  )}
                 </Button>
               </div>
             </div>
