@@ -5,14 +5,16 @@ import Logo from "../../assets/images/download.png";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import googleIcon from "../../assets/images/g-plus.png";
-import fb from "../../assets/images/fb.png";
 import { ToastContainer, toast } from "react-toastify";
 import { postData } from "../../utils/api";
 import { useNavigate } from 'react-router-dom'; 
 import CircularProgress from '@mui/material/CircularProgress';
-import { GoogleLogin } from '@react-oauth/google';
-import { jwtDecode } from "jwt-decode";
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { firebaseApp } from "../../firebase";
 import "react-toastify/dist/ReactToastify.css";
+
+const auth = getAuth(firebaseApp);
+const googleProvider = new GoogleAuthProvider();
 
 const SignUp = () => {
   const context = useContext(MyContext);
@@ -91,43 +93,63 @@ const SignUp = () => {
     }
   };
 
-  // Handle Google authentication success
-  const handleGoogleSuccess = async (credentialResponse) => {
+  // Handle Google authentication with Firebase
+  const handleGoogleSignUp = async (e) => {
+    e.preventDefault();
     setGoogleLoading(true);
+    
     try {
-      const decoded = jwtDecode(credentialResponse.credential);
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
       
+      // Get the Google ID token from Firebase
+      const idToken = await user.getIdToken();
+      
+      // Send the Google ID token to your backend
       const response = await postData("/api/user/authWithGoogle", {
-        token: credentialResponse.credential
+        token: idToken
       });
 
-      if (response.token) {
-        // Store the token in localStorage or context
-        localStorage.setItem('authToken', response.token);
-        context.setUser(response.user);
-        toast.success("Google authentication successful!");
+      // Check if response is successful
+      if (response.status === 200) {
+        const { token: jwtToken, user: apiUser } = response;
+
+        localStorage.setItem("token", jwtToken);
+
+        const userData = {
+          name: apiUser.name,
+          email: apiUser.email,
+          userId: apiUser._id,
+          profilePhoto: apiUser.profilePhoto,
+        };
+
+        localStorage.setItem("user", JSON.stringify(userData));
+        context.setUser(userData);
+        context.setIsLogin(true);
+        toast.success("Signed up successfully with Google!");
         
-        // Redirect based on user role or to homepage
+        // Redirect to homepage
         setTimeout(() => {
           navigate("/");
           context.setIsHeaderFooterShow(true);
         }, 1000);
+      } else {
+        toast.error(response.message || "Google sign-up failed.");
       }
     } catch (error) {
-      console.error("Google auth error:", error);
+      console.error("Google sign-up error:", error);
+      
+      // More specific error handling
       if (error.response && error.response.data) {
-        toast.error(error.response.data.message);
+        toast.error(error.response.data.message || "Google authentication failed");
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        toast.info("Google sign-up was cancelled");
       } else {
-        toast.error("Google authentication failed");
+        toast.error("An error occurred during Google sign-up. Please try again.");
       }
     } finally {
       setGoogleLoading(false);
     }
-  };
-
-  // Handle Google authentication failure
-  const handleGoogleError = () => {
-    toast.error("Google authentication failed");
   };
 
   return (
@@ -268,24 +290,17 @@ const SignUp = () => {
                 <h5 className="text-center">Or continue with social account</h5>
                 <br />
                 <div className="d-flex align-items-center justify-content-center socialimg">
-                  <GoogleLogin
-                    onSuccess={handleGoogleSuccess}
-                    onError={handleGoogleError}
-                    render={(renderProps) => (
-                      <Button
-                        onClick={renderProps.onClick}
-                        disabled={renderProps.disabled || googleLoading}
-                        className="cursor rounded-circle d-flex align-items-center justify-content-center"
-                      >
-                        {googleLoading ? (
-                          <CircularProgress size={24} />
-                        ) : (
-                          <img src={googleIcon} alt="Google" />
-                        )}
-                      </Button>
+                  <Button
+                    onClick={handleGoogleSignUp}
+                    disabled={googleLoading}
+                    className="cursor rounded-circle d-flex align-items-center justify-content-center"
+                  >
+                    {googleLoading ? (
+                      <CircularProgress size={24} />
+                    ) : (
+                      <img src={googleIcon} alt="Google" />
                     )}
-                  />
-                  
+                  </Button>
                 </div>
               </div>
             </div>
