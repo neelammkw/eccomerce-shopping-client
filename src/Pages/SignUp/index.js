@@ -4,8 +4,6 @@ import { Link } from "react-router-dom";
 import Logo from "../../assets/images/download.png";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
-import google from "../../assets/images/g-plus.png";
-import fb from "../../assets/images/fb.png";
 import { ToastContainer, toast } from "react-toastify";
 import { postData } from "../../utils/api";
 import { useNavigate } from 'react-router-dom'; 

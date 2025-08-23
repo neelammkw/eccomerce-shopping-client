@@ -8,11 +8,7 @@ import google from "../../assets/images/g-plus.png";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { postData } from "../../utils/api";
-import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { firebaseApp } from "../../firebase";
 
-const auth = getAuth(firebaseApp);
-const googleProvider = new GoogleAuthProvider();
 
 const SignIn = () => {
   const context = useContext(MyContext);
