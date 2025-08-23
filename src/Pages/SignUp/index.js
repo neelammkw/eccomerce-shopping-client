@@ -4,23 +4,19 @@ import { Link } from "react-router-dom";
 import Logo from "../../assets/images/download.png";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
-import googleIcon from "../../assets/images/g-plus.png";
+import google from "../../assets/images/g-plus.png";
+import fb from "../../assets/images/fb.png";
 import { ToastContainer, toast } from "react-toastify";
 import { postData } from "../../utils/api";
 import { useNavigate } from 'react-router-dom'; 
-import CircularProgress from '@mui/material/CircularProgress';
-import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { firebaseApp } from "../../firebase";
-import "react-toastify/dist/ReactToastify.css";
+import CircularProgress from '@mui/material/CircularProgress'; // Import CircularProgress
 
-const auth = getAuth(firebaseApp);
-const googleProvider = new GoogleAuthProvider();
+import "react-toastify/dist/ReactToastify.css";
 
 const SignUp = () => {
   const context = useContext(MyContext);
   const navigate = useNavigate(); 
-  const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // Loading state
 
   useEffect(() => {
     context.setIsHeaderFooterShow(false);
@@ -59,98 +55,41 @@ const SignUp = () => {
   };
 
   // Handle form submission
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+const handleSubmit = async (event) => {
+  event.preventDefault();
 
-    if (!validate()) {
-      return;
+  if (!validate()) {
+    return;
+  }
+
+  setLoading(true); // Show loader
+
+  try {
+    const response = await postData("/api/user/sign-up", formFields);
+
+    // Check the status code and handle accordingly
+    if (response.status === 201) {
+      toast.success("User added successfully!");
+      setTimeout(() => {
+        navigate("/sign-in");
+      }, 1500);
+
+    } else if (response.status === 409) { // Assuming 409 for conflict
+      toast.error("User with this email or phone number already exists");
+    } else {
+      toast.error("An error occurred during registration");
     }
-
-    setLoading(true);
-
-    try {
-      const response = await postData("/api/user/sign-up", formFields);
-
-      if (response.status === 201) {
-        toast.success("User added successfully!");
-        setTimeout(() => {
-          navigate("/sign-in");
-        }, 1500);
-      } else if (response.status === 409) {
-        toast.error("User with this email or phone number already exists");
-      } else {
-        toast.error("An error occurred during registration");
-      }
-    } catch (error) {
-      if (error.response && error.response.data) {
-        const backendErrors = error.response.data.message;
-        toast.error(backendErrors || "An error occurred during registration");
-      } else {
-        toast.error("Something went wrong. Please try again later.");
-      }
-    } finally {
-      setLoading(false);
+  } catch (error) {
+    if (error.response && error.response.data) {
+      const backendErrors = error.response.data.message;
+      toast.error(backendErrors || "An error occurred during registration");
+    } else {
+      toast.error("Something went wrong. Please try again later.");
     }
-  };
-
-  // Handle Google authentication with Firebase
-  const handleGoogleSignUp = async (e) => {
-    e.preventDefault();
-    setGoogleLoading(true);
-    
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-      
-      // Get the Google ID token from Firebase
-      const idToken = await user.getIdToken();
-      
-      // Send the Google ID token to your backend
-      const response = await postData("/api/user/authWithGoogle", {
-        token: idToken
-      });
-
-      // Check if response is successful
-      if (response.status === 200) {
-        const { token: jwtToken, user: apiUser } = response;
-
-        localStorage.setItem("token", jwtToken);
-
-        const userData = {
-          name: apiUser.name,
-          email: apiUser.email,
-          userId: apiUser._id,
-          profilePhoto: apiUser.profilePhoto,
-        };
-
-        localStorage.setItem("user", JSON.stringify(userData));
-        context.setUser(userData);
-        context.setIsLogin(true);
-        toast.success("Signed up successfully with Google!");
-        
-        // Redirect to homepage
-        setTimeout(() => {
-          navigate("/");
-          context.setIsHeaderFooterShow(true);
-        }, 1000);
-      } else {
-        toast.error(response.message || "Google sign-up failed.");
-      }
-    } catch (error) {
-      console.error("Google sign-up error:", error);
-      
-      // More specific error handling
-      if (error.response && error.response.data) {
-        toast.error(error.response.data.message || "Google authentication failed");
-      } else if (error.code === 'auth/popup-closed-by-user') {
-        toast.info("Google sign-up was cancelled");
-      } else {
-        toast.error("An error occurred during Google sign-up. Please try again.");
-      }
-    } finally {
-      setGoogleLoading(false);
-    }
-  };
+  } finally {
+    setLoading(false); // Hide loader
+  }
+};
 
   return (
     <>
@@ -259,10 +198,9 @@ const SignUp = () => {
                     <div className="col-md-6">
                       <Button
                         type="submit"
-                        className="btn btn-blue btn-lg w-100 mt-0 mt-1" 
-                        disabled={loading}
-                      >
-                        {loading ? <CircularProgress size={24} /> : "Sign Up"}
+                        className="btn btn-blue btn-lg w-100 mt-0 mt-1" disabled={loading===true ? true: false}
+                      >{loading ? <CircularProgress size={24} /> : "Sign Up"} {/* Conditionally show loader */}
+                        
                       </Button>
                     </div>
                     <div className="col-md-6">
@@ -291,15 +229,20 @@ const SignUp = () => {
                 <br />
                 <div className="d-flex align-items-center justify-content-center socialimg">
                   <Button
-                    onClick={handleGoogleSignUp}
-                    disabled={googleLoading}
                     className="cursor rounded-circle d-flex align-items-center justify-content-center"
+                    href="/"
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
-                    {googleLoading ? (
-                      <CircularProgress size={24} />
-                    ) : (
-                      <img src={googleIcon} alt="Google" />
-                    )}
+                    <img src={google} alt="Google Plus" />
+                  </Button>
+                  <Button
+                    className="cursor rounded-circle d-flex align-items-center justify-content-center ml-3"
+                    href="/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <img src={fb} alt="Facebook" />
                   </Button>
                 </div>
               </div>
