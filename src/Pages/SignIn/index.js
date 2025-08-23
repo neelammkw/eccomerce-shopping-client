@@ -4,7 +4,6 @@ import Logo from "../../assets/images/download.png";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
-import google from "../../assets/images/g-plus.png";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { postData } from "../../utils/api";
