@@ -51,49 +51,6 @@ const SignIn = () => {
     });
   };
 
-  const signInWithGoogle = async (e) => {
-    e.preventDefault(); 
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-
-      const fields = {
-        name: user.displayName,
-        email: user.email,
-        profilePhoto: user.photoURL,
-        password: null, // Not required as this is a Google sign-in
-        phone: user.phoneNumber,
-      };
-
-      // Send user details to your backend API
-      const response = await postData("/api/user/authWithGoogle", fields);
-
-      // Check if response.data exists
-      if (response.status === 200 && response.data) {
-        const { token, user: apiUser } = response.data; // Adjusting to access response.data
-
-        localStorage.setItem("token", token);
-
-        const userData = {
-          name: apiUser.name,
-          email: apiUser.email,
-          userId: apiUser._id,
-          profilePhoto: apiUser.profilePhoto,
-        };
-
-        localStorage.setItem("user", JSON.stringify(userData));
-        context.setUser(userData);
-        context.setIsLogin(true);
-        toast.success("Logged in successfully with Google!");
-        navigate("/");
-      } else {
-        toast.error(response.message || "Google sign-in failed.");
-      }
-    } catch (error) {
-      console.error("Google sign-in error:", error);
-      toast.error("An error occurred during Google sign-in.");
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -233,18 +190,7 @@ const SignIn = () => {
                   </span>
                 </div>
               </form>
-              <br />
-              <h5 className="text-center">Or continue with social account</h5>
-              <br />
-              <div className="d-flex align-items-center justify-content-center socialimg">
-                <Button
-                  className="cursor rounded-circle d-flex align-items-center justify-content-center"
-                  rel="noopener noreferrer"
-                  onClick={signInWithGoogle}
-                >
-                  <img src={google} alt="Google Plus" />
-                </Button>
-              </div>
+             
             </div>
           </div>
         </div>
